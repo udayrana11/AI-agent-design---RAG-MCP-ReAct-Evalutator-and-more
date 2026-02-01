@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Production-Scale Hub-and-Spoke Architecture</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
+      padding: 20px;
+      min-height: 100vh;
+    }
+    
+    .container {
+      max-width: 1800px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+      overflow: hidden;
+    }
+    
+    .header {
+      background: linear-gradient(135deg, #1e40af 0%, #3730a3 100%);
+      padding: 35px;
+      color: white;
+    }
+    
+    .header h1 {
+      font-size: 36px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .header .subtitle {
+      font-size: 17px;
+      opacity: 0.95;
+      font-weight: 300;
+      margin-bottom: 15px;
+    }
+    
+    .header .meta-tags {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 15px;
+    }
+    
+    .header .badge {
+      display: inline-block;
+      background: rgba(255,255,255,0.2);
+      color: white;
+      padding: 7px 16px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      border: 1px solid rgba(255,255,255,0.4);
+    }
+    
+    .content {
+      padding: 35px;
+    }
+    
+    .legend-section {
+      background: #f8fafc;
+      padding: 25px;
+      border-radius: 12px;
+      margin-bottom: 35px;
+      border: 2px solid #e2e8f0;
+    }
+    
+    .legend-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #334155;
+      margin-bottom: 18px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .legend-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 18px;
+    }
+    
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 13px;
+    }
+    
+    .legend-color {
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      border: 2px solid;
+      flex-shrink: 0;
+    }
+    
+    .tech-stack {
+      background: #ede9fe;
+      padding: 20px;
+      border-radius: 8px;
+      margin-top: 20px;
+      border-left: 4px solid #6366f1;
+    }
+    
+    .tech-stack-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #4338ca;
+      margin-bottom: 12px;
+    }
+    
+    .tech-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    
+    .tech-tag {
+      background: white;
+      border: 1px solid #c7d2fe;
+      padding: 5px 12px;
+      border-radius: 6px;
+      font-size: 11px;
+      color: #4338ca;
+      font-weight: 500;
+    }
+    
+    .scale-note {
+      background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+      border: 3px solid #f59e0b;
+      padding: 25px;
+      border-radius: 12px;
+      margin-top: 20px;
+    }
+    
+    .scale-note-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #92400e;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .scale-note ul {
+      margin-left: 25px;
+      color: #92400e;
+      font-size: 13px;
+      line-height: 2;
+    }
+    
+    .scale-note ul li {
+      margin-bottom: 8px;
+    }
+    
+    .diagram-wrapper {
+      background: #fafafa;
+      padding: 35px;
+      border-radius: 12px;
+      overflow-x: auto;
+    }
+    
+    svg text {
+      font-family: 'Segoe UI', sans-serif;
+    }
+    
+    @media (max-width: 768px) {
+      .header h1 { font-size: 26px; }
+      .legend-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🌍 Production-Scale Hub-and-Spoke AI Architecture</h1>
+      <div class="subtitle">Multi-Region, Millions of Users, Kubernetes Orchestration, Advanced MCP Integrations</div>
+      <div class="meta-tags">
+        <span class="badge">12+ MONTHS BUILD</span>
+        <span class="badge">$50K-150K/MONTH</span>
+        <span class="badge">1M-10M+ USERS</span>
+        <span class="badge">MULTI-REGION</span>
+        <span class="badge">KUBERNETES + KAFKA</span>
+      </div>
+    </div>
+    
+    <div class="content">
+      <div class="legend-section">
+        <div class="legend-title">🎨 Architecture Layer Guide</div>
+        <div class="legend-grid">
+          <div class="legend-item">
+            <div class="legend-color" style="background: linear-gradient(135deg, #ef4444, #dc2626); border-color: #991b1b;"></div>
+            <span><strong>Layer 1:</strong> Global Edge (Multi-Region)</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-color" style="background: linear-gradient(135deg, #f97316, #ea580c); border-color: #9a3412;"></div>
+            <span><strong>Layer 2:</strong> Ingestion & Security</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-color" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed); border-color: #5b21b6;"></div>
+            <span><strong>Layer 3:</strong> Event Streaming (Kafka)</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-color" style="background: linear-gradient(135deg, #3b82f6, #2563eb); border-color: #1e40af;"></div>
+            <span><strong>Layer 4:</strong> Orchestrator Hub (K8s)</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-color" style="background: linear-gradient(135deg, #10b981, #059669); border-color: #047857;"></div>
+            <span><strong>Layer 5:</strong> Worker Spokes (RAG/MCP)</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-color" style="background: linear-gradient(135deg, #ec4899, #db2777); border-color: #9f1239;"></div>
+            <span><strong>Layer 6:</strong> Synthesis & Quality</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-color" style="background: linear-gradient(135deg, #64748b, #475569); border-color: #334155;"></div>
+            <span><strong>Layer 7:</strong> Persistence & Observability</span>
+          </div>
+        </div>
+        
+        <div class="tech-stack">
+          <div class="tech-stack-title">🔧 PRODUCTION TECH STACK</div>
+          <div class="tech-tags">
+            <span class="tech-tag">Route53 + CloudFront</span>
+            <span class="tech-tag">AWS WAF Advanced</span>
+            <span class="tech-tag">API Gateway (WebSocket)</span>
+            <span class="tech-tag">Kubernetes (EKS Multi-Region)</span>
+            <span class="tech-tag">Apache Kafka (MSK)</span>
+            <span class="tech-tag">Redis Cluster (ElastiCache)</span>
+            <span class="tech-tag">Pinecone Enterprise</span>
+            <span class="tech-tag">PostgreSQL RDS (Multi-AZ)</span>
+            <span class="tech-tag">OpenAI + Anthropic + Google</span>
+            <span class="tech-tag">TensorFlow Serving (GPU)</span>
+            <span class="tech-tag">MCP: Jira, Salesforce, Slack, Mixpanel, GitHub</span>
+            <span class="tech-tag">Presidio + NeMo</span>
+            <span class="tech-tag">OpenTelemetry</span>
+            <span class="tech-tag">Prometheus + Grafana</span>
+            <span class="tech-tag">LangSmith</span>
+          </div>
+        </div>
+        
+        <div class="scale-note">
+          <div class="scale-note-title">⚡ SCALING TO MILLIONS - KEY UPGRADES</div>
+          <ul>
+            <li><strong>Multi-Region Deployment:</strong> US-East, US-West, EU-West, APAC for low latency globally</li>
+            <li><strong>Kubernetes (EKS):</strong> Auto-scaling pods, HPA/VPA, spot instances, 100+ nodes per cluster</li>
+            <li><strong>Apache Kafka (MSK):</strong> Partitioned topics, consumer groups, guaranteed ordering, replay capability</li>
+            <li><strong>Redis Cluster:</strong> 5-10 node cluster with read replicas, 99.99% uptime</li>
+            <li><strong>Advanced WAF:</strong> ML-based bot detection, geo-blocking, custom rules, rate limiting per user</li>
+            <li><strong>GPU Pods:</strong> Dedicated TensorFlow Serving pods with NVIDIA A100s for embeddings</li>
+            <li><strong>Multiple LLM Providers:</strong> OpenAI, Anthropic, Google Gemini with intelligent routing and fallback</li>
+            <li><strong>5-10 MCP Tools:</strong> Jira, Salesforce, Slack, Mixpanel, GitHub, Stripe, Zendesk, HubSpot, etc.</li>
+            <li><strong>Advanced Observability:</strong> Distributed tracing, APM, anomaly detection, cost tracking per request</li>
+            <li><strong>Self-Healing:</strong> Circuit breakers, health checks, automatic restarts, graceful degradation</li>
+          </ul>
+        </div>
+      </div>
+      
+      <div class="diagram-wrapper">
+        <svg width="1700" height="5800" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="layer1" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color:#ef4444"/>
+              <stop offset="100%" style="stop-color:#dc2626"/>
+            </linearGradient>
+            <linearGradient id="layer2" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color:#f97316"/>
+              <stop offset="100%" style="stop-color:#ea580c"/>
+            </linearGradient>
+            <linearGradient id="layer3" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color:#8b5cf6"/>
+              <stop offset="100%" style="stop-color:#7c3aed"/>
+            </linearGradient>
+            <linearGradient id="layer4" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color:#3b82f6"/>
+              <stop offset="100%" style="stop-color:#2563eb"/>
+            </linearGradient>
+            <linearGradient id="layer5" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color:#10b981"/>
+              <stop offset="100%" style="stop-color:#059669"/>
+            </linearGradient>
+            <linearGradient id="layer6" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color:#ec4899"/>
+              <stop offset="100%" style="stop-color:#db2777"/>
+            </linearGradient>
+            <linearGradient id="layer7" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color:#64748b"/>
+              <stop offset="100%" style="stop-color:#475569"/>
+            </linearGradient>
+            
+            <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+              <polygon points="0 0, 10 3, 0 6" fill="#1e293b"/>
+            </marker>
+            <marker id="arrowRed" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+              <polygon points="0 0, 10 3, 0 6" fill="#dc2626"/>
+            </marker>
+            <marker id="arrowGreen" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+              <polygon points="0 0, 10 3, 0 6" fill="#059669"/>
+            </marker>
+            <marker id="arrowBlue" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+              <polygon points="0 0, 10 3, 0 6" fill="#2563eb"/>
+            </marker>
+            <marker id="arrowPurple" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+              <polygon points="0 0, 10 3, 0 6" fill="#7c3aed"/>
+            </marker>
+            <marker id="arrowPink" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+              <polygon points="0 0, 10 3, 0 6" fill="#db2777"/>
+            </marker>
+            <marker id="arrowOrange" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+              <polygon points="0 0, 10 3, 0 6" fill="#f59e0b"/>
+            </marker>
+            
+            <filter id="shadow">
+              <feDropShadow dx="0" dy="3" stdDeviation="4" flood-opacity="0.25"/>
+            </filter>
+          </defs>
+          
+          <!-- LAYER 1: Global Edge (Multi-Region) -->
+          <g id="layer1">
+            <rect x="50" y="30" width="1600" height="480" fill="#fee2e2" stroke="#dc2626" stroke-width="4" rx="14" opacity="0.3"/>
+            <text x="70" y="70" font-size="22" font-weight="bold" fill="#991b1b">LAYER 1: Global Edge & CDN (Multi-Region Distribution)</text>
+            <text x="70" y="95" font-size="13" font-style="italic" fill="#dc2626">Month 1-2 • "Low latency for millions of users worldwide"</text>
+            
+            <!-- User Devices -->
+            <rect x="700" y="130" width="300" height="70" fill="url(#layer1)" stroke="#991b1b" stroke-width="3" rx="10" filter="url(#shadow)"/>
+            <text x="850" y="160" font-size="18" font-weight="bold" text-anchor="middle" fill="white">🌍 Global Users</text>
+            <text x="850" y="182" font-size="12" text-anchor="middle" fill="white">Millions across US, EU, APAC</text>
+            
+            <line x1="850" y1="200" x2="850" y2="240" stroke="#1e293b" stroke-width="4" marker-end="url(#arrow)"/>
+            
+            <!-- Route 53 -->
+            <rect x="650" y="240" width="400" height="70" fill="url(#layer1)" stroke="#991b1b" stroke-width="3" rx="10" filter="url(#shadow)"/>
+            <text x="850" y="270" font-size="16" font-weight="bold" text-anchor="middle" fill="white">🌐 Route 53 DNS</text>
+            <text x="850" y="292" font-size="12" text-anchor="middle" fill="white">Geo-routing + Latency-based + Health checks</text>
+            
+            <!-- Split to Regions -->
+            <line x1="750" y1="310" x2="300" y2="370" stroke="#dc2626" stroke-width="3" marker-end="url(#arrowRed)"/>
+            <text x="480" y="335" font-size="12" font-weight="bold" fill="#991b1b">Static Assets</text>
+            
+            <line x1="950" y1="310" x2="1300" y2="370" stroke="#dc2626" stroke-width="3" marker-end="url(#arrowRed)"/>
+            <text x="1180" y="335" font-size="12" font-weight="bold" fill="#991b1b">API Traffic</text>
+            
+            <!-- CloudFront -->
+            <rect x="100" y="370" width="400" height="110" fill="url(#layer1)" stroke="#991b1b" stroke-width="2" rx="10" filter="url(#shadow)"/>
+            <text x="300" y="400" font-size="15" font-weight="bold" text-anchor="middle" fill="white">⚡ CloudFront CDN</text>
+            <text x="300" y="422" font-size="11" text-anchor="middle" fill="white">200+ Edge Locations Globally</text>
+            <text x="300" y="440" font-size="11" text-anchor="middle" fill="white">React/Next.js UI cached</text>
+            <text x="300" y="458" font-size="11" text-anchor="middle" fill="white">Sub-50ms latency worldwide</text>
+            <text x="300" y="473" font-size="10" text-anchor="middle" fill="white">↓ S3 Multi-Region Buckets</text>
+            
+            <!-- WAF Advanced -->
+            <rect x="1100" y="370" width="500" height="110" fill="url(#layer1)" stroke="#991b1b" stroke-width="2" rx="10" filter="url(#shadow)"/>
+            <text x="1350" y="400" font-size="15" font-weight="bold" text-anchor="middle" fill="white">🛡️ AWS WAF (Advanced)</text>
+            <text x="1350" y="422" font-size="11" text-anchor="middle" fill="white">ML-based Bot Detection</text>
+            <text x="1350" y="440" font-size="11" text-anchor="middle" fill="white">Geo-blocking + DDoS Protection (Shield Advanced)</text>
+            <text x="1350" y="458" font-size="11" text-anchor="middle" fill="white">Rate Limiting: 10K req/min per IP</text>
+            <text x="1350" y="476" font-size="11" text-anchor="middle" fill="white">Custom Rules + Anomaly Detection</text>
+          </g>
+          
+          <line x1="850" y1="510" x2="850" y2="590" stroke="#1e293b" stroke-width="4" marker-end="url(#arrow)"/>
+          
+          <!-- LAYER 2: Ingestion & Security -->
+          <g id="layer2">
+            <rect x="50" y="590" width="1600" height="550" fill="#ffedd5" stroke="#ea580c" stroke-width="4" rx="14" opacity="0.3"/>
+            <text x="70" y="630" font-size="22" font-weight="bold" fill="#9a3412">LAYER 2: API Gateway & Security Layer</text>
+            <text x="70" y="655" font-size="13" font-style="italic" fill="#c2410c">Month 1-3 • "Authentication, validation, PII protection"</text>
+            
+            <!-- API Gateway -->
+            <rect x="550" y="690" width="600" height="100" fill="url(#layer2)" stroke="#9a3412" stroke-width="3" rx="10" filter="url(#shadow)"/>
+            <text x="850" y="725" font-size="17" font-weight="bold" text-anchor="middle" fill="white">🚪 API Gateway (Multi-Region)</text>
+            <text x="850" y="748" font-size="12" text-anchor="middle" fill="white">WebSocket + REST API • Regional deployments</text>
+            <text x="850" y="766" font-size="11" text-anchor="middle" fill="white">OAuth 2.0 + JWT + Cognito User Pools</text>
+            <text x="850" y="784" font-size="11" text-anchor="middle" fill="white">10K req/min per user • Burst: 20K</text>
+            
+            <line x1="850" y1="790" x2="850" y2="840" stroke="#1e293b" stroke-width="3" marker-end="url(#arrow)"/>
+            
+            <!-- Cache Check -->
+            <polygon points="850,840 990,905 850,970 710,905" fill="#fef3c7" stroke="#f59e0b" stroke-width="3" filter="url(#shadow)"/>
+            <text x="850" y="895" font-size="14" font-weight="bold" text-anchor="middle" fill="#92400e">Redis Cache</text>
+            <text x="850" y="915" font-size="14" font-weight="bold" text-anchor="middle" fill="#92400e">Check?</text>
+            
+            <!-- Cache Hit -->
+            <line x1="990" y1="905" x2="1150" y2="905" stroke="#059669" stroke-width="3" marker-end="url(#arrowGreen)"/>
+            <rect x="1150" y="875" width="230" height="60" fill="#d1fae5" stroke="#059669" stroke-width="2" rx="8"/>
+            <text x="1265" y="900" font-size="13" font-weight="bold" text-anchor="middle" fill="#047857">✅ Cache Hit</text>
+            <text x="1265" y="920" font-size="11" text-anchor="middle" fill="#065f46">Return in &lt;10ms</text>
+            
+            <!-- Cache Miss - Security -->
+            <line x1="850" y1="970" x2="850" y2="1020" stroke="#1e293b" stroke-width="3" marker-end="url(#arrow)"/>
+            <text x="870" y="1000" font-size="12" font-weight="bold" fill="#9a3412">Cache Miss</text>
+            
+            <!-- Security Pipeline -->
+            <rect x="500" y="1020" width="700" height="100" fill="url(#layer2)" stroke="#9a3412" stroke-width="3" rx="10" filter="url(#shadow)"/>
+            <text x="850" y="1055" font-size="16" font-weight="bold" text-anchor="middle" fill="white">🔐 Security Pipeline (K8s Sidecar Pods)</text>
+            <text x="850" y="1078" font-size="12" text-anchor="middle" fill="white">Presidio: PII Detection + Redaction (SSN, Credit Cards, PHI)</text>
+            <text x="850" y="1096" font-size="12" text-anchor="middle" fill="white">NeMo Guardrails: Prompt Injection + Policy Validation</text>
+            <text x="850" y="1114" font-size="11" text-anchor="middle" fill="white">Custom ML Models: Toxicity Detection + Intent Classification</text>
+          </g>
+          
+          <line x1="850" y1="1140" x2="850" y2="1210" stroke="#7c3aed" stroke-width="4" marker-end="url(#arrowPurple)"/>
+          <text x="880" y="1180" font-size="13" font-weight="bold" fill="#5b21b6">Publish to Kafka</text>
+          
+          <!-- LAYER 3: Event Streaming (Kafka) -->
+          <g id="layer3">
+            <rect x="50" y="1210" width="1600" height="320" fill="#f3e8ff" stroke="#7c3aed" stroke-width="4" rx="14" opacity="0.3"/>
+            <text x="70" y="1250" font-size="22" font-weight="bold" fill="#5b21b6">LAYER 3: Event Streaming - Apache Kafka (MSK)</text>
+            <text x="70" y="1275" font-size="13" font-style="italic" fill="#7c3aed">Month 2-3 • "Guaranteed message delivery, replay capability, event sourcing"</text>
+            
+            <!-- Kafka Cluster -->
+            <rect x="400" y="1320" width="900" height="180" fill="url(#layer3)" stroke="#5b21b6" stroke-width="4" rx="12" filter="url(#shadow)"/>
+            <text x="850" y="1360" font-size="18" font-weight="bold" text-anchor="middle" fill="white">📨 Apache Kafka (MSK) - Multi-AZ Cluster</text>
+            
+            <!-- Topics -->
+            <rect x="430" y="1390" width="260" height="90" fill="white" fill-opacity="0.95" stroke="#5b21b6" stroke-width="2" rx="8"/>
+            <text x="560" y="1415" font-size="13" font-weight="bold" text-anchor="middle" fill="#5b21b6">Topic: "user-queries"</text>
+            <text x="560" y="1435" font-size="11" text-anchor="middle" fill="#6b21a8">10 partitions</text>
+            <text x="560" y="1453" font-size="11" text-anchor="middle" fill="#6b21a8">Replication factor: 3</text>
+            <text x="560" y="1471" font-size="10" text-anchor="middle" fill="#6b21a8">Retention: 7 days</text>
+            
+            <rect x="720" y="1390" width="260" height="90" fill="white" fill-opacity="0.95" stroke="#5b21b6" stroke-width="2" rx="8"/>
+            <text x="850" y="1415" font-size="13" font-weight="bold" text-anchor="middle" fill="#5b21b6">Topic: "tool-tasks"</text>
+            <text x="850" y="1435" font-size="11" text-anchor="middle" fill="#6b21a8">20 partitions</text>
+            <text x="850" y="1453" font-size="11" text-anchor="middle" fill="#6b21a8">Replication factor: 3</text>
+            <text x="850" y="1471" font-size="10" text-anchor="middle" fill="#6b21a8">For RAG + MCP tasks</text>
+            
+            <rect x="1010" y="1390" width="260" height="90" fill="white" fill-opacity="0.95" stroke="#5b21b6" stroke-width="2" rx="8"/>
+            <text x="1140" y="1415" font-size="13" font-weight="bold" text-anchor="middle" fill="#5b21b6">Topic: "responses"</text>
+            <text x="1140" y="1435" font-size="11" text-anchor="middle" fill="#6b21a8">5 partitions</text>
+            <text x="1140" y="1453" font-size="11" text-anchor="middle" fill="#6b21a8">Replication factor: 3</text>
+            <text x="1140" y="1471" font-size="10" text-anchor="middle" fill="#6b21a8">Final answers</text>
+            
+            <!-- HTTP 202 -->
+            <rect x="1330" y="1020" width="300" height="80" fill="#dbeafe" stroke="#3b82f6" stroke-width="2" rx="8"/>
+            <text x="1480" y="1050" font-size="13" font-weight="bold" text-anchor="middle" fill="#1e40af">⏳ HTTP 202 Accepted</text>
+            <text x="1480" y="1070" font-size="11" text-anchor="middle" fill="#1e40af">User gets immediate response</text>
+            <text x="1480" y="1088" font-size="11" text-anchor="middle" fill="#1e40af">WebSocket listener active</text>
+          </g>
+          
+          <line x1="850" y1="1530" x2="850" y2="1610" stroke="#2563eb" stroke-width="4" marker-end="url(#arrowBlue)"/>
+          <text x="880" y="1575" font-size="13" font-weight="bold" fill="#1e40af">Consumer Group subscribes</text>
+          
+          <!-- LAYER 4: Orchestrator Hub (K8s) -->
+          <g id="layer4">
+            <rect x="50" y="1610" width="1600" height="1350" fill="#dbeafe" stroke="#2563eb" stroke-width="4" rx="14" opacity="0.3"/>
+            <text x="70" y="1650" font-size="22" font-weight="bold" fill="#1e40af">LAYER 4: Orchestrator Hub - Kubernetes Cluster (EKS)</text>
+            <text x="70" y="1675" font-size="13" font-style="italic" fill="#3b82f6">Month 4-8 • "Central brain running on auto-scaling pods"</text>
+            
+            <!-- K8s Cluster Box -->
+            <rect x="150" y="1720" width="1400" height="1190" fill="rgba(59, 130, 246, 0.08)" stroke="#3b82f6" stroke-width="4" rx="14" stroke-dasharray="12,8"/>
+            <rect x="180" y="1695" width="450" height="40" fill="#3b82f6" stroke="#1e40af" stroke-width="2" rx="10"/>
+            <text x="405" y="1723" font-size="15" font-weight="bold" text-anchor="middle" fill="white">☸️ KUBERNETES CLUSTER (EKS) - Multi-AZ</text>
+            
+            <!-- Orchestrator Pods -->
+            <rect x="550" y="1770" width="600" height="140" fill="url(#layer4)" stroke="#1e40af" stroke-width="4" rx="12" filter="url(#shadow)"/>
+            <text x="850" y="1810" font-size="19" font-weight="bold" text-anchor="middle" fill="white">🎯 ORCHESTRATOR PODS (HUB)</text>
+            <text x="850" y="1840" font-size="14" text-anchor="middle" fill="white">LangChain ReAct Agent • Python Service</text>
+            <text x="850" y="1862" font-size="12" text-anchor="middle" fill="white">Horizontal Pod Autoscaler: 10-100 pods</text>
+            <text x="850" y="1880" font-size="11" text-anchor="middle" fill="white">Consumes from Kafka "user-queries" topic</text>
+            <text x="850" y="1898" font-size="11" text-anchor="middle" fill="white">Decides: RAG? MCP tools? Synthesize?</text>
+            
+            <!-- Redis Cluster -->
+            <rect x="1200" y="1790" width="320" height="160" fill="#f0fdfa" stroke="#14b8a6" stroke-width="3" rx="10" stroke-dasharray="5,5"/>
+            <text x="1360" y="1830" font-size="15" font-weight="bold" text-anchor="middle" fill="#0f766e">💾 Redis Cluster</text>
+            <text x="1360" y="1852" font-size="12" text-anchor="middle" fill="#0f766e">(ElastiCache - 5-10 nodes)</text>
+            <text x="1360" y="1880" font-size="11" text-anchor="middle" fill="#115e59">• User State & Context</text>
+            <text x="1360" y="1898" font-size="11" text-anchor="middle" fill="#115e59">• RAG Results</text>
+            <text x="1360" y="1916" font-size="11" text-anchor="middle" fill="#115e59">• MCP Results (5-10 tools)</text>
+            <text x="1360" y="1934" font-size="11" text-anchor="middle" fill="#115e59">• Plan Steps & Decision Log</text>
+            
+            <line x1="1150" y1="1850" x2="1200" y2="1850" stroke="#14b8a6" stroke-width="3" stroke-dasharray="3,3"/>
+            <text x="1170" y="1840" font-size="10" fill="#0f766e" font-weight="bold">R/W</text>
+            
+            <!-- HPA Note -->
+            <rect x="200" y="1935" width="320" height="60" fill="#fef3c7" stroke="#f59e0b" stroke-width="2" rx="8"/>
+            <text x="360" y="1960" font-size="12" font-weight="bold" text-anchor="middle" fill="#92400e">⚡ Horizontal Pod Autoscaler</text>
+            <text x="360" y="1980" font-size="10" text-anchor="middle" fill="#92400e">Scales based on CPU, memory,</text>
+            <text x="360" y="1995" font-size="10" text-anchor="middle" fill="#92400e">and Kafka consumer lag</text>
+            
+            <!-- Decision Diamond -->
+            <polygon points="850,2030 1020,2110 850,2190 680,2110" fill="#fef3c7" stroke="#f59e0b" stroke-width="4" filter="url(#shadow)"/>
+            <text x="850" y="2095" font-size="16" font-weight="bold" text-anchor="middle" fill="#92400e">ORCHESTRATOR</text>
+            <text x="850" y="2118" font-size="16" font-weight="bold" text-anchor="middle" fill="#92400e">REASONING:</text>
+            <text x="850" y="2138" font-size="13" text-anchor="middle" fill="#92400e">What action next?</text>
+            <text x="850" y="2158" font-size="13" text-anchor="middle" fill="#92400e">(ReAct loop)</text>
+            
+            <line x1="850" y1="1910" x2="850" y2="2030" stroke="#f59e0b" stroke-width="4" marker-end="url(#arrowOrange)"/>
+            
+            <!-- RAG Task -->
+            <line x1="680" y1="2110" x2="400" y2="2240" stroke="#059669" stroke-width="4" marker-end="url(#arrowGreen)"/>
+            <text x="480" y="2170" font-size="13" font-weight="bold" fill="#047857">① Publishes task</text>
+            <text x="480" y="2190" font-size="13" font-weight="bold" fill="#047857">to Kafka "tool-tasks"</text>
+            <text x="480" y="2208" font-size="12" fill="#047857">(RAG partition)</text>
+            
+            <rect x="200" y="2240" width="400" height="80" fill="#d1fae5" stroke="#059669" stroke-width="3" rx="10"/>
+            <text x="400" y="2270" font-size="15" font-weight="bold" text-anchor="middle" fill="#047857">📨 Kafka: RAG Task Published</text>
+            <text x="400" y="2293" font-size="11" text-anchor="middle" fill="#047857">{user_id, query, embeddings_needed}</text>
+            <text x="400" y="2311" font-size="11" text-anchor="middle" fill="#047857">RAG Worker pods subscribe to this</text>
+            
+            <!-- MCP Tasks -->
+            <line x1="1020" y1="2110" x2="1300" y2="2240" stroke="#059669" stroke-width="4" marker-end="url(#arrowGreen)"/>
+            <text x="1220" y="2170" font-size="13" font-weight="bold" fill="#047857">② Publishes multiple</text>
+            <text x="1220" y="2190" font-size="13" font-weight="bold" fill="#047857">MCP tasks to Kafka</text>
+            <text x="1220" y="2208" font-size="12" fill="#047857">(Different partitions)</text>
+            
+            <rect x="1100" y="2240" width="400" height="80" fill="#d1fae5" stroke="#059669" stroke-width="3" rx="10"/>
+            <text x="1300" y="2270" font-size="15" font-weight="bold" text-anchor="middle" fill="#047857">📨 Kafka: MCP Tasks Published</text>
+            <text x="1300" y="2293" font-size="11" text-anchor="middle" fill="#047857">Jira, Salesforce, Slack, GitHub, etc.</text>
+            <text x="1300" y="2311" font-size="11" text-anchor="middle" fill="#047857">MCP Worker pods subscribe to these</text>
+            
+            <!-- Orchestrator Monitors -->
+            <rect x="600" y="2400" width="500" height="100" fill="url(#layer4)" stroke="#1e40af" stroke-width="3" rx="10" filter="url(#shadow)"/>
+            <text x="850" y="2435" font-size="16" font-weight="bold" text-anchor="middle" fill="white">🔄 Orchestrator Monitors Redis State</text>
+            <text x="850" y="2460" font-size="12" text-anchor="middle" fill="white">Polls every 500ms for worker results</text>
+            <text x="850" y="2480" font-size="11" text-anchor="middle" fill="white">When all tasks complete → Triggers Synthesis</text>
+            
+            <!-- State Complete -->
+            <rect x="550" y="2530" width="600" height="90" fill="#d1fae5" stroke="#10b981" stroke-width="4" rx="12"/>
+            <text x="850" y="2565" font-size="17" font-weight="bold" text-anchor="middle" fill="#047857">✅ ORCHESTRATOR: "State Complete!"</text>
+            <text x="850" y="2590" font-size="13" text-anchor="middle" fill="#047857">All worker results in Redis ✓</text>
+            <text x="850" y="2610" font-size="13" text-anchor="middle" fill="#047857">Ready to call Synthesizer pod</text>
+            
+            <line x1="850" y1="2320" x2="850" y2="2400" stroke="#14b8a6" stroke-width="3" stroke-dasharray="5,5"/>
+            <text x="870" y="2365" font-size="11" fill="#0f766e" font-weight="bold">Reads Redis</text>
+            
+            <!-- Circuit Breaker -->
+            <rect x="200" y="2650" width="1300" height="70" fill="#fee2e2" stroke="#dc2626" stroke-width="2" rx="8"/>
+            <text x="850" y="2678" font-size="13" font-weight="bold" text-anchor="middle" fill="#991b1b">⚠️ CIRCUIT BREAKER & TIMEOUT HANDLING</text>
+            <text x="850" y="2698" font-size="11" text-anchor="middle" fill="#991b1b">If worker fails or times out (30s): Orchestrator retries with different worker pod or marks task as failed</text>
+            <text x="850" y="2713" font-size="11" text-anchor="middle" fill="#991b1b">Graceful degradation: Proceed with partial results if critical data available</text>
+          </g>
+          
+          <line x1="850" y1="2960" x2="850" y2="3050" stroke="#059669" stroke-width="4" marker-end="url(#arrowGreen)"/>
+          <text x="880" y="3010" font-size="13" font-weight="bold" fill="#047857">③ Orchestrator triggers workers</text>
+          
+          <!-- LAYER 5: Worker Spokes (RAG & MCP) -->
+          <g id="layer5">
+            <rect x="50" y="3050" width="1600" height="850" fill="#d1fae5" stroke="#059669" stroke-width="4" rx="14" opacity="0.3"/>
+            <text x="70" y="3090" font-size="22" font-weight="bold" fill="#047857">LAYER 5: Worker Spokes - RAG & MCP Microservices (K8s Pods)</text>
+            <text x="70" y="3115" font-size="13" font-style="italic" fill="#059669">Month 5-10 • "Independently scaling worker pods for retrieval and tool execution"</text>
+            
+            <!-- RAG Worker Pods -->
+            <g id="ragWorkers">
+              <rect x="150" y="3160" width="700" height="330" fill="url(#layer5)" stroke="#047857" stroke-width="4" rx="12" filter="url(#shadow)"/>
+              <text x="500" y="3200" font-size="18" font-weight="bold" text-anchor="middle" fill="white">🔍 RAG WORKER PODS (SPOKE)</text>
+              <text x="500" y="3225" font-size="13" text-anchor="middle" fill="white">HPA: 5-50 pods • Consumes from Kafka "tool-tasks"</text>
+              
+              <rect x="180" y="3255" width="640" height="55" fill="white" fill-opacity="0.95" stroke="#047857" stroke-width="2" rx="8"/>
+              <text x="500" y="3278" font-size="13" font-weight="bold" text-anchor="middle" fill="#047857">Step A: Generate Embeddings</text>
+              <text x="500" y="3298" font-size="11" text-anchor="middle" fill="#065f46">TensorFlow Serving on GPU Pods (NVIDIA A100)</text>
+              
+              <rect x="180" y="3320" width="640" height="70" fill="white" fill-opacity="0.95" stroke="#047857" stroke-width="2" rx="8"/>
+              <text x="500" y="3343" font-size="13" font-weight="bold" text-anchor="middle" fill="#047857">Step B: Query Pinecone Vector DB</text>
+              <text x="500" y="3363" font-size="11" text-anchor="middle" fill="#065f46">Enterprise tier: Sharded across 10+ indexes</text>
+              <text x="500" y="3381" font-size="11" text-anchor="middle" fill="#065f46">Metadata filters • Hybrid search • 99.99% uptime</text>
+              
+              <rect x="180" y="3400" width="640" height="70" fill="white" fill-opacity="0.95" stroke="#047857" stroke-width="2" rx="8"/>
+              <text x="500" y="3423" font-size="13" font-weight="bold" text-anchor="middle" fill="#047857">Step C: Push Results to Redis Cluster</text>
+              <text x="500" y="3443" font-size="11" text-anchor="middle" fill="#065f46">State key: rag_results:{query_id}</text>
+              <text x="500" y="3461" font-size="11" text-anchor="middle" fill="#065f46">Retrieved docs, emails, Slack threads, etc.</text>
+            </g>
+            
+            <!-- MCP Worker Pods -->
+            <g id="mcpWorkers">
+              <rect x="900" y="3160" width="700" height="720" fill="url(#layer5)" stroke="#047857" stroke-width="4" rx="12" filter="url(#shadow)"/>
+              <text x="1250" y="3200" font-size="18" font-weight="bold" text-anchor="middle" fill="white">🔌 MCP WORKER PODS (SPOKES)</text>
+              <text x="1250" y="3225" font-size="13" text-anchor="middle" fill="white">HPA: 10-100 pods • Multiple tool integrations</text>
+              
+              <!-- Individual MCP Tools -->
+              <rect x="930" y="3255" width="300" height="50" fill="white" fill-opacity="0.95" stroke="#047857" stroke-width="2" rx="8"/>
+              <text x="1080" y="3278" font-size="12" font-weight="bold" text-anchor="middle" fill="#047857">🎫 Jira MCP Worker</text>
+              <text x="1080" y="3296" font-size="10" text-anchor="middle" fill="#065f46">Fetch tickets, sprints, issues</text>
+              
+              <rect x="1260" y="3255" width="300" height="50" fill="white" fill-opacity="0.95" stroke="#047857" stroke-width="2" rx="8"/>
+              <text x="1410" y="3278" font-size="12" font-weight="bold" text-anchor="middle" fill="#047857">☁️ Salesforce MCP Worker</text>
+              <text x="1410" y="3296" font-size="10" text-anchor="middle" fill="#065f46">CRM data, leads, opportunities</text>
+              
+              <rect x="930" y="3320" width="300" height="50" fill="white" fill-opacity="0.95" stroke="#047857" stroke-width="2" rx="8"/>
+              <text x="1080" y="3343" font-size="12" font-weight="bold" text-anchor="middle" fill="#047857">💬 Slack MCP Worker</text>
+              <text x="1080" y="3361" font-size="10" text-anchor="middle" fill="#065f46">Channel history, DMs, threads</text>
+              
+              <rect x="1260" y="3320" width="300" height="50" fill="white" fill-opacity="0.95" stroke="#047857" stroke-width="2" rx="8"/>
+              <text x="1410" y="3343" font-size="12" font-weight="bold" text-anchor="middle" fill="#047857">📊 Mixpanel MCP Worker</text>
+              <text x="1410" y="3361" font-size="10" text-anchor="middle" fill="#065f46">Analytics, events, user data</text>
+              
+              <rect x="930" y="3385" width="300" height="50" fill="white" fill-opacity="0.95" stroke="#047857" stroke-width="2" rx="8"/>
+              <text x="1080" y="3408" font-size="12" font-weight="bold" text-anchor="middle" fill="#047857">🐙 GitHub MCP Worker</text>
+              <text x="1080" y="3426" font-size="10" text-anchor="middle" fill="#065f46">Repos, PRs, commits, issues</text>
+              
+              <rect x="1260" y="3385" width="300" height="50" fill="white" fill-opacity="0.95" stroke="#047857" stroke-width="2" rx="8"/>
+              <text x="1410" y="3408" font-size="12" font-weight="bold" text-anchor="middle" fill="#047857">💳 Stripe MCP Worker</text>
+              <text x="1410" y="3426" font-size="10" text-anchor="middle" fill="#065f46">Payments, subscriptions</text>
+              
+              <rect x="930" y="3450" width="300" height="50" fill="white" fill-opacity="0.95" stroke="#047857" stroke-width="2" rx="8"/>
+              <text x="1080" y="3473" font-size="12" font-weight="bold" text-anchor="middle" fill="#047857">🎧 Zendesk MCP Worker</text>
+              <text x="1080" y="3491" font-size="10" text-anchor="middle" fill="#065f46">Support tickets, customer data</text>
+              
+              <rect x="1260" y="3450" width="300" height="50" fill="white" fill-opacity="0.95" stroke="#047857" stroke-width="2" rx="8"/>
+              <text x="1410" y="3473" font-size="12" font-weight="bold" text-anchor="middle" fill="#047857">📈 HubSpot MCP Worker</text>
+              <text x="1410" y="3491" font-size="10" text-anchor="middle" fill="#065f46">Marketing automation, contacts</text>
+              
+              <!-- All write to Redis -->
+              <rect x="930" y="3520" width="630" height="70" fill="white" fill-opacity="0.95" stroke="#047857" stroke-width="2" rx="8"/>
+              <text x="1245" y="3545" font-size="13" font-weight="bold" text-anchor="middle" fill="#047857">All MCP Workers Write to Redis Cluster</text>
+              <text x="1245" y="3565" font-size="11" text-anchor="middle" fill="#065f46">State keys: mcp_results:{tool_name}:{query_id}</text>
+              <text x="1245" y="3583" font-size="11" text-anchor="middle" fill="#065f46">Results available for Orchestrator to read</text>
+              
+              <!-- Credentials -->
+              <rect x="930" y="3610" width="630" height="70" fill="#fef3c7" stroke="#f59e0b" stroke-width="2" rx="8"/>
+              <text x="1245" y="3635" font-size="12" font-weight="bold" text-anchor="middle" fill="#92400e">🔐 AWS Secrets Manager</text>
+              <text x="1245" y="3655" font-size="11" text-anchor="middle" fill="#92400e">API keys, tokens, credentials for all MCP tools</text>
+              <text x="1245" y="3673" font-size="11" text-anchor="middle" fill="#92400e">Automatic rotation every 90 days</text>
+            </g>
+            
+            <!-- Workers write to Redis -->
+            <line x1="500" y1="3490" x2="500" y2="3550" stroke="#10b981" stroke-width="3" marker-end="url(#arrowGreen)"/>
+            <line x1="1250" y1="3590" x2="1250" y2="3550" stroke="#10b981" stroke-width="3" marker-end="url(#arrowGreen)"/>
+            
+            <rect x="700" y="3550" width="300" height="80" fill="#f0fdfa" stroke="#14b8a6" stroke-width="3" rx="10"/>
+            <text x="850" y="3580" font-size="14" font-weight="bold" text-anchor="middle" fill="#0f766e">💾 Redis Cluster</text>
+            <text x="850" y="3600" font-size="11" text-anchor="middle" fill="#115e59">All worker results</text>
+            <text x="850" y="3618" font-size="11" text-anchor="middle" fill="#115e59">aggregated here</text>
+            
+            <!-- Orchestrator reads -->
+            <line x1="850" y1="3550" x2="850" y2="3680" stroke="#f59e0b" stroke-width="3" marker-end="url(#arrowOrange)" stroke-dasharray="5,5"/>
+            <text x="870" y="3620" font-size="12" font-weight="bold" fill="#92400e">④ Orchestrator</text>
+            <text x="870" y="3638" font-size="12" font-weight="bold" fill="#92400e">polls Redis</text>
+            
+            <rect x="600" y="3680" width="500" height="80" fill="#d1fae5" stroke="#10b981" stroke-width="3" rx="10"/>
+            <text x="850" y="3710" font-size="15" font-weight="bold" text-anchor="middle" fill="#047857">✅ Orchestrator: "All Data Retrieved!"</text>
+            <text x="850" y="3733" font-size="12" text-anchor="middle" fill="#047857">RAG results ✓ + Jira ✓ + Salesforce ✓ + Slack ✓</text>
+            <text x="850" y="3751" font-size="12" text-anchor="middle" fill="#047857">Time to synthesize final answer</text>
+          </g>
+          
+          <line x1="850" y1="3900" x2="850" y2="3990" stroke="#db2777" stroke-width="4" marker-end="url(#arrowPink)"/>
+          <text x="880" y="3950" font-size="13" font-weight="bold" fill="#9f1239">⑤ Orchestrator calls Synthesizer</text>
+          
+          <!-- LAYER 6: Synthesis & Quality -->
+          <g id="layer6">
+            <rect x="50" y="3990" width="1600" height="700" fill="#fce7f3" stroke="#db2777" stroke-width="4" rx="14" opacity="0.3"/>
+            <text x="70" y="4030" font-size="22" font-weight="bold" fill="#9f1239">LAYER 6: Synthesis & Quality Control (K8s Pods)</text>
+            <text x="70" y="4055" font-size="13" font-style="italic" fill="#db2777">Month 9-10 • "Final answer generation with multi-stage quality checks"</text>
+            
+            <!-- Model Gateway -->
+            <rect x="550" y="4100" width="600" height="100" fill="url(#layer6)" stroke="#9f1239" stroke-width="3" rx="12" filter="url(#shadow)"/>
+            <text x="850" y="4135" font-size="17" font-weight="bold" text-anchor="middle" fill="white">🤖 Model Gateway (Load Balancer)</text>
+            <text x="850" y="4160" font-size="12" text-anchor="middle" fill="white">Routes to: OpenAI GPT-4 • Anthropic Claude • Google Gemini</text>
+            <text x="850" y="4180" font-size="11" text-anchor="middle" fill="white">Intelligent fallback + Cost optimization + A/B testing</text>
+            <text x="850" y="4196" font-size="11" text-anchor="middle" fill="white">Tracks: Latency, cost per token, error rates</text>
+            
+            <line x1="850" y1="4200" x2="850" y2="4250" stroke="#1e293b" stroke-width="3" marker-end="url(#arrow)"/>
+            
+            <!-- Synthesizer -->
+            <rect x="500" y="4250" width="700" height="120" fill="url(#layer6)" stroke="#9f1239" stroke-width="4" rx="12" filter="url(#shadow)"/>
+            <text x="850" y="4290" font-size="19" font-weight="bold" text-anchor="middle" fill="white">✍️ SYNTHESIZER POD (SPOKE)</text>
+            <text x="850" y="4318" font-size="13" text-anchor="middle" fill="white">HPA: 5-30 pods • Final answer generation</text>
+            <text x="850" y="4340" font-size="12" text-anchor="middle" fill="white">Input: Full state (query + RAG + MCP results)</text>
+            <text x="850" y="4358" font-size="12" text-anchor="middle" fill="white">Advanced prompts: Chain-of-thought, few-shot examples</text>
+            
+            <line x1="850" y1="4370" x2="850" y2="4420" stroke="#1e293b" stroke-width="3" marker-end="url(#arrow)"/>
+            
+            <!-- Reflection -->
+            <rect x="450" y="4420" width="800" height="140" fill="url(#layer6)" stroke="#9f1239" stroke-width="4" rx="12" filter="url(#shadow)"/>
+            <text x="850" y="4460" font-size="19" font-weight="bold" text-anchor="middle" fill="white">⚖️ REFLECTION POD (SPOKE)</text>
+            <text x="850" y="4488" font-size="13" text-anchor="middle" fill="white">HPA: 3-20 pods • Multi-stage quality checks</text>
+            <text x="850" y="4510" font-size="12" text-anchor="middle" fill="white">1. Hallucination Detection (Custom ML model)</text>
+            <text x="850" y="4530" font-size="12" text-anchor="middle" fill="white">2. Citation Verification (Rule-based + LLM)</text>
+            <text x="850" y="4550" font-size="12" text-anchor="middle" fill="white">3. Tone & Coherence Check (Separate LLM call)</text>
+            
+            <rect x="1280" y="4450" width="300" height="90" fill="#d1fae5" stroke="#10b981" stroke-width="2" rx="8"/>
+            <text x="1430" y="4480" font-size="13" font-weight="bold" text-anchor="middle" fill="#047857">🎯 QUALITY BOOST</text>
+            <text x="1430" y="4502" font-size="11" text-anchor="middle" fill="#047857">Accuracy: 75% → 95%</text>
+            <text x="1430" y="4520" font-size="11" text-anchor="middle" fill="#047857">Hallucination rate: 15% → 2%</text>
+            <text x="1430" y="4538" font-size="11" text-anchor="middle" fill="#047857">User satisfaction: +40%</text>
+            
+            <!-- Quality Check -->
+            <polygon points="850,4600 1000,4670 850,4740 700,4670" fill="#fef3c7" stroke="#f59e0b" stroke-width="4" filter="url(#shadow)"/>
+            <text x="850" y="4655" font-size="15" font-weight="bold" text-anchor="middle" fill="#92400e">Quality Pass?</text>
+            <text x="850" y="4678" font-size="13" text-anchor="middle" fill="#92400e">(Max 5 retries)</text>
+            <text x="850" y="4698" font-size="12" text-anchor="middle" fill="#92400e">Retry budget: 30s</text>
+            
+            <line x1="850" y1="4560" x2="850" y2="4600" stroke="#1e293b" stroke-width="3" marker-end="url(#arrow)"/>
+            
+            <!-- Fail Loop -->
+            <path d="M 700 4670 L 350 4670 L 350 4310 L 500 4310" 
+                  stroke="#dc2626" stroke-width="4" fill="none" marker-end="url(#arrowRed)" stroke-dasharray="10,10"/>
+            <text x="280" y="4490" font-size="13" font-weight="bold" fill="#991b1b">❌ FAIL</text>
+            <text x="280" y="4510" font-size="12" fill="#991b1b">⑥ Loop back to</text>
+            <text x="280" y="4528" font-size="12" fill="#991b1b">Orchestrator</text>
+            <text x="280" y="4546" font-size="12" fill="#991b1b">with detailed</text>
+            <text x="280" y="4564" font-size="12" fill="#991b1b">feedback</text>
+            
+            <!-- Pass -->
+            <text x="870" y="4770" font-size="14" font-weight="bold" fill="#059669">✓ PASS</text>
+          </g>
+          
+          <line x1="850" y1="4740" x2="850" y2="4820" stroke="#10b981" stroke-width="4" marker-end="url(#arrowGreen)"/>
+          <text x="880" y="4785" font-size="13" font-weight="bold" fill="#047857">⑦ Stream to user via WebSocket</text>
+          
+          <!-- Final Response -->
+          <rect x="500" y="4820" width="700" height="110" fill="#d1fae5" stroke="#10b981" stroke-width="4" rx="14" filter="url(#shadow)"/>
+          <text x="850" y="4860" font-size="20" font-weight="bold" text-anchor="middle" fill="#047857">✅ FINAL RESPONSE STREAMING</text>
+          <text x="850" y="4890" font-size="14" text-anchor="middle" fill="#047857">Redis Pub/Sub → API Gateway WebSocket</text>
+          <text x="850" y="4913" font-size="13" text-anchor="middle" fill="#065f46">Real-time streaming to user in &lt;100ms per chunk</text>
+          
+          <!-- LAYER 7: Persistence & Observability -->
+          <g id="layer7">
+            <rect x="50" y="4970" width="1600" height="780" fill="#f1f5f9" stroke="#475569" stroke-width="4" rx="14" opacity="0.3"/>
+            <text x="70" y="5010" font-size="22" font-weight="bold" fill="#334155">LAYER 7: Persistence, Compliance & Observability</text>
+            <text x="70" y="5035" font-size="13" font-style="italic" fill="#475569">Month 11-12 • "Background processes, audit logs, monitoring, cost tracking"</text>
+            
+            <!-- Three parallel branches -->
+            <line x1="850" y1="4930" x2="350" y2="5080" stroke="#64748b" stroke-width="3"/>
+            <text x="550" y="5000" font-size="12" font-weight="bold" fill="#334155">Logging</text>
+            
+            <line x1="850" y1="4930" x2="850" y2="5080" stroke="#64748b" stroke-width="3"/>
+            <text x="870" y="5000" font-size="12" font-weight="bold" fill="#334155">Compliance</text>
+            
+            <line x1="850" y1="4930" x2="1350" y2="5080" stroke="#64748b" stroke-width="3"/>
+            <text x="1150" y="5000" font-size="12" font-weight="bold" fill="#334155">Monitoring</text>
+            
+            <!-- Logging -->
+            <rect x="100" y="5080" width="500" height="240" fill="url(#layer7)" stroke="#334155" stroke-width="3" rx="12" filter="url(#shadow)"/>
+            <text x="350" y="5115" font-size="16" font-weight="bold" text-anchor="middle" fill="white">📝 Logging & Audit Trail</text>
+            
+            <rect x="120" y="5145" width="460" height="50" fill="white" fill-opacity="0.95" stroke="#334155" stroke-width="2" rx="8"/>
+            <text x="350" y="5168" font-size="12" font-weight="bold" text-anchor="middle" fill="#334155">PostgreSQL RDS (Multi-AZ)</text>
+            <text x="350" y="5186" font-size="10" text-anchor="middle" fill="#475569">Chat history, user data, decision logs</text>
+            
+            <rect x="120" y="5205" width="460" height="50" fill="white" fill-opacity="0.95" stroke="#334155" stroke-width="2" rx="8"/>
+            <text x="350" y="5228" font-size="12" font-weight="bold" text-anchor="middle" fill="#334155">S3 + Glacier</text>
+            <text x="350" y="5246" font-size="10" text-anchor="middle" fill="#475569">Immutable audit logs, long-term retention</text>
+            
+            <rect x="120" y="5265" width="460" height="45" fill="white" fill-opacity="0.95" stroke="#334155" stroke-width="2" rx="8"/>
+            <text x="350" y="5291" font-size="11" text-anchor="middle" fill="#334155">AWS Glue ETL: Daily aggregation jobs</text>
+            
+            <!-- Compliance -->
+            <rect x="650" y="5080" width="400" height="240" fill="url(#layer7)" stroke="#334155" stroke-width="3" rx="12" filter="url(#shadow)"/>
+            <text x="850" y="5115" font-size="16" font-weight="bold" text-anchor="middle" fill="white">🔒 Compliance Pipeline</text>
+            
+            <rect x="670" y="5145" width="360" height="45" fill="white" fill-opacity="0.95" stroke="#334155" stroke-width="2" rx="8"/>
+            <text x="850" y="5171" font-size="11" text-anchor="middle" fill="#334155">HIPAA + SOC2 + GDPR compliant logging</text>
+            
+            <rect x="670" y="5200" width="360" height="45" fill="white" fill-opacity="0.95" stroke="#334155" stroke-width="2" rx="8"/>
+            <text x="850" y="5226" font-size="11" text-anchor="middle" fill="#334155">PII anonymization for analytics</text>
+            
+            <rect x="670" y="5255" width="360" height="45" fill="white" fill-opacity="0.95" stroke="#334155" stroke-width="2" rx="8"/>
+            <text x="850" y="5281" font-size="11" text-anchor="middle" fill="#334155">Automated compliance reports (monthly)</text>
+            
+            <!-- Monitoring -->
+            <rect x="1100" y="5080" width="500" height="240" fill="url(#layer7)" stroke="#334155" stroke-width="3" rx="12" filter="url(#shadow)"/>
+            <text x="1350" y="5115" font-size="16" font-weight="bold" text-anchor="middle" fill="white">📊 Observability Stack</text>
+            
+            <rect x="1120" y="5145" width="220" height="55" fill="white" fill-opacity="0.95" stroke="#334155" stroke-width="2" rx="8"/>
+            <text x="1230" y="5168" font-size="12" font-weight="bold" text-anchor="middle" fill="#334155">Prometheus + Grafana</text>
+            <text x="1230" y="5186" font-size="10" text-anchor="middle" fill="#475569">Metrics, dashboards</text>
+            <text x="1230" y="5198" font-size="10" text-anchor="middle" fill="#475569">SLA monitoring</text>
+            
+            <rect x="1360" y="5145" width="220" height="55" fill="white" fill-opacity="0.95" stroke="#334155" stroke-width="2" rx="8"/>
+            <text x="1470" y="5168" font-size="12" font-weight="bold" text-anchor="middle" fill="#334155">OpenTelemetry</text>
+            <text x="1470" y="5186" font-size="10" text-anchor="middle" fill="#475569">Distributed tracing</text>
+            <text x="1470" y="5198" font-size="10" text-anchor="middle" fill="#475569">Span analysis</text>
+            
+            <rect x="1120" y="5210" width="220" height="55" fill="white" fill-opacity="0.95" stroke="#334155" stroke-width="2" rx="8"/>
+            <text x="1230" y="5233" font-size="12" font-weight="bold" text-anchor="middle" fill="#334155">LangSmith</text>
+            <text x="1230" y="5251" font-size="10" text-anchor="middle" fill="#475569">LLM observability</text>
+            <text x="1230" y="5263" font-size="10" text-anchor="middle" fill="#475569">Hallucination tracking</text>
+            
+            <rect x="1360" y="5210" width="220" height="55" fill="white" fill-opacity="0.95" stroke="#334155" stroke-width="2" rx="8"/>
+            <text x="1470" y="5233" font-size="12" font-weight="bold" text-anchor="middle" fill="#334155">Cost Tracking</text>
+            <text x="1470" y="5251" font-size="10" text-anchor="middle" fill="#475569">$ per request</text>
+            <text x="1470" y="5263" font-size="10" text-anchor="middle" fill="#475569">Model costs</text>
+            
+            <rect x="1120" y="5275" width="460" height="35" fill="white" fill-opacity="0.95" stroke="#334155" stroke-width="2" rx="8"/>
+            <text x="1350" y="5298" font-size="11" text-anchor="middle" fill="#334155">PagerDuty + Slack alerts for incidents</text>
+            
+            <!-- Cost Breakdown -->
+            <rect x="100" y="5360" width="1500" height="360" fill="white" stroke="#cbd5e1" stroke-width="3" rx="12"/>
+            <text x="850" y="5405" font-size="20" font-weight="bold" text-anchor="middle" fill="#1e293b">💰 PRODUCTION COST BREAKDOWN (MONTHLY)</text>
+            
+            <line x1="120" y1="5430" x2="1580" y2="5430" stroke="#cbd5e1" stroke-width="2"/>
+            
+            <text x="250" y="5460" font-size="13" font-weight="bold" fill="#475569">COMPONENT</text>
+            <text x="650" y="5460" font-size="13" font-weight="bold" fill="#475569">COST</text>
+            <text x="1150" y="5460" font-size="13" font-weight="bold" fill="#475569">NOTES</text>
+            
+            <line x1="120" y1="5470" x2="1580" y2="5470" stroke="#cbd5e1" stroke-width="2"/>
+            
+            <text x="250" y="5500" font-size="12" text-anchor="middle" fill="#1e293b">☸️ Kubernetes (EKS)</text>
+            <text x="650" y="5500" font-size="12" text-anchor="middle" fill="#334155">$15K-30K</text>
+            <text x="1150" y="5500" font-size="11" text-anchor="middle" fill="#64748b">100+ nodes, multi-region, spot instances</text>
+            
+            <line x1="120" y1="5515" x2="1580" y2="5515" stroke="#e2e8f0" stroke-width="1"/>
+            
+            <text x="250" y="5540" font-size="12" text-anchor="middle" fill="#1e293b">📨 Kafka (MSK)</text>
+            <text x="650" y="5540" font-size="12" text-anchor="middle" fill="#334155">$8K-12K</text>
+            <text x="1150" y="5540" font-size="11" text-anchor="middle" fill="#64748b">Multi-AZ, 30+ brokers, high throughput</text>
+            
+            <line x1="120" y1="5555" x2="1580" y2="5555" stroke="#e2e8f0" stroke-width="1"/>
+            
+            <text x="250" y="5575" font-size="12" text-anchor="middle" fill="#1e293b">💾 Redis Cluster</text>
+            <text x="650" y="5575" font-size="12" text-anchor="middle" fill="#334155">$3K-5K</text>
+            <text x="1150" y="5575" font-size="11" text-anchor="middle" fill="#64748b">5-10 nodes, ElastiCache, read replicas</text>
+            
+            <line x1="120" y1="5590" x2="1580" y2="5590" stroke="#e2e8f0" stroke-width="1"/>
+            
+            <text x="250" y="5610" font-size="12" text-anchor="middle" fill="#1e293b">🔍 Pinecone Enterprise</text>
+            <text x="650" y="5610" font-size="12" text-anchor="middle" fill="#334155">$5K-8K</text>
+            <text x="1150" y="5610" font-size="11" text-anchor="middle" fill="#64748b">Sharded indexes, dedicated capacity</text>
+            
+            <line x1="120" y1="5625" x2="1580" y2="5625" stroke="#e2e8f0" stroke-width="1"/>
+            
+            <text x="250" y="5645" font-size="12" text-anchor="middle" fill="#1e293b">🤖 LLM API Calls</text>
+            <text x="650" y="5645" font-size="12" text-anchor="middle" fill="#334155">$15K-50K</text>
+            <text x="1150" y="5645" font-size="11" text-anchor="middle" fill="#64748b">OpenAI + Anthropic + Google, 10M+ requests</text>
+            
+            <line x1="120" y1="5660" x2="1580" y2="5660" stroke="#e2e8f0" stroke-width="1"/>
+            
+            <text x="250" y="5680" font-size="12" text-anchor="middle" fill="#1e293b">💻 GPU Pods</text>
+            <text x="650" y="5680" font-size="12" text-anchor="middle" fill="#334155">$4K-10K</text>
+            <text x="1150" y="5680" font-size="11" text-anchor="middle" fill="#64748b">NVIDIA A100s, embeddings generation</text>
+            
+            <line x1="120" y1="5695" x2="1580" y2="5695" stroke="#e2e8f0" stroke-width="1"/>
+            
+            <text x="250" y="5715" font-size="13" font-weight="bold" text-anchor="middle" fill="#1e293b">TOTAL</text>
+            <text x="650" y="5715" font-size="13" font-weight="bold" text-anchor="middle" fill="#047857">$50K-150K/month</text>
+            <text x="1150" y="5715" font-size="11" text-anchor="middle" fill="#64748b">Scales with traffic, ~$0.05-0.15 per request</text>
+          </g>
+        </svg>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
